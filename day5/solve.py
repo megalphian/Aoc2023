@@ -28,9 +28,9 @@ for line in lines:
             line = line.split()
             sections[sec_num] += [line]
 
-print(sections[0])
-
 for id, section in enumerate(sections):
+    source_range, dest_range, range_len = 0, 1, 2
+     
     for row in section:
         if id == 0:
             for seed in row:
