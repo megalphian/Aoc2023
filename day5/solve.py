@@ -5,6 +5,23 @@ with open(input_filename) as f:
 
 import re
 
+def handle_overlap(seed_ranges):
+    # Handle seed range overlap
+    for i in range(len(seed_ranges)-1):
+        for j in range(i+1, len(seed_ranges)):
+            if(len(seed_ranges[i]) == 0 or len(seed_ranges[j]) == 0):
+                continue
+            a_1, b_1 = seed_ranges[i]
+            a_2, b_2 = seed_ranges[j]
+            if(a_2 > b_1):
+                continue
+            elif(b_1 >= a_2 and b_2 > b_1):
+                seed_ranges[i] = [a_1, b_2]
+                seed_ranges[j] = []
+            elif(b_1 >= a_2 and b_2 <= b_1):
+                seed_ranges[i] = [a_1, b_1]
+                seed_ranges[j] = []
+
 sec_num = 0
 sections = [[],] * 8
 sec_ref = ['seeds', 'seed_soil', 'soil_fert', 'fert_water', 'water_light', 'light_temp', 'temp_hum', 'hum_loc']
@@ -48,22 +65,7 @@ for i in range(len(seed_list)):
 
 # Sort the seed ranges by the start value
 seed_ranges = sorted(seed_ranges, key=lambda seed_range: seed_range[0])
-
-# Handle seed range overlap
-for i in range(len(seed_ranges)-1):
-    for j in range(i+1, len(seed_ranges)):
-        if(len(seed_ranges[i]) == 0 or len(seed_ranges[j]) == 0):
-            continue
-        a_1, b_1 = seed_ranges[i]
-        a_2, b_2 = seed_ranges[j]
-        if(a_2 > b_1):
-            continue
-        elif(b_1 >= a_2 and b_2 > b_1):
-            seed_ranges[i] = [a_1, b_2]
-            seed_ranges[j] = []
-        elif(b_1 >= a_2 and b_2 <= b_1):
-            seed_ranges[i] = [a_1, b_1]
-            seed_ranges[j] = []
+seed_ranges = [seed_range for seed_range in seed_ranges if len(seed_range) > 0]
 
 location = None
 ref_ranges = seed_ranges.copy()
@@ -111,6 +113,9 @@ for section in sections[1:]:
         new_range = new_ref_ranges[i]
         shift = shifts[i]
         ref_ranges += [[a + shift for a in new_range]]
+
+    handle_overlap(ref_ranges)
+    ref_ranges = [ref_range for ref_range in ref_ranges if len(ref_range) > 0]
 
     counter += 1
     print('Done section '+ str(counter) + ' out of ' + str(loop_length))
