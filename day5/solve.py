@@ -1,4 +1,4 @@
-input_filename = 'day5/input.txt'
+input_filename = 'day5/test.txt'
 
 with open(input_filename) as f:
     lines = f.readlines()
@@ -24,7 +24,7 @@ def handle_overlap(seed_ranges):
 
 sec_num = 0
 sections = [[],] * 8
-sec_ref = ['seeds', 'seed_soil', 'soil_fert', 'fert_water', 'water_light', 'light_temp', 'temp_hum', 'hum_loc']
+sec_ref = ['seed_soil', 'soil_fert', 'fert_water', 'water_light', 'light_temp', 'temp_hum', 'hum_loc']
 
 for line in lines:
     line = line.strip('\n')
@@ -46,85 +46,126 @@ for line in lines:
             sections[sec_num] += [line]
 
 seed_list = sections[0][0]
+maps = sections[1:]
 seed_ranges = []
-count = 0
-seeds = []
 
 for i in range(len(seed_list)):
     if i % 2 == 0:
-        start = int(seed_list[i])
+        seed_start = int(seed_list[i])
         length = int(seed_list[i+1])
-        end = start + length
-        seed_ranges += [[start, end]]
-        count += length
+        end = seed_start + length - 1
+        seed_ranges += [[seed_start, end]]
 
-# print(seed_range)
-# print(count)
 
 # Handle overlap between seed ranges
 
 # Sort the seed ranges by the start value
-seed_ranges = sorted(seed_ranges, key=lambda seed_range: seed_range[0])
-seed_ranges = [seed_range for seed_range in seed_ranges if len(seed_range) > 0]
+# seed_ranges = sorted(seed_ranges, key=lambda seed_range: seed_range[0])
 
-location = None
-ref_ranges = seed_ranges.copy()
+# seed_ranges = [seed_range for seed_range in seed_ranges if len(seed_range) > 0]
 
-loop_length = len(sections[1:])
-counter = 0
 
-for section in sections[1:]:
-    new_ref_ranges = []
-    shifts = []
-    split_pairs = []
-    for dest, source, length in section:
-        # add split pairs to ref ranges and clear split pairs
-        ref_ranges += split_pairs
-        split_pairs = []
+# location = None
+# ref_ranges = seed_ranges.copy()
 
-        min = int(source)
-        max = int(source) + int(length)
-        shift = int(dest) - int(source)
+# loop_length = len(sections[1:])
+# counter = 0
 
-        for ref_range in ref_ranges:
-            a, b = ref_range
-            # There is overlap between the map and the ranges we have
-            if(min >= a and min <= b):
-                if(max <= b):
-                    transform_pair = [min, max]
-                    new_split_pairs = [[a, min-1], [max+1, b]]
-                else:
-                    transform_pair = [min, b]
-                    new_split_pairs = [[a, min-1]]
-            elif(max >= a and max <= b):
-                # recall min is not within the range
-                transform_pair = [a, max]
-                new_split_pairs = [[max + 1, b]]    
+# for section in sections[1:]:
+#     new_ref_ranges = []
+#     shifts = []
+#     split_pairs = []
+#     for dest, source, length in section:
+#         # add split pairs to ref ranges and clear split pairs
+#         ref_ranges += split_pairs
+#         split_pairs = []
+
+#         min = int(source)
+#         max = int(source) + int(length)
+#         shift = int(dest) - int(source)
+
+#         for ref_range in ref_ranges:
+#             a, b = ref_range
+#             transform_pair = None
+#             new_split_pairs = []
+#             # There is overlap between the map and the ranges we have
+#             if(min >= a and min <= b):
+#                 if(max <= b):
+#                     transform_pair = [min, max]
+#                     new_split_pairs = [[a, min-1], [max+1, b]]
+#                 else:
+#                     transform_pair = [min, b]
+#                     new_split_pairs = [[a, min-1]]
+#             elif(max >= a and max <= b):
+#                 # recall min is not within the range
+#                 transform_pair = [a, max]
+#                 new_split_pairs = [[max + 1, b]]    
             
-            new_ref_ranges.append(transform_pair)
-            shifts.append(shift)
+#             if transform_pair:
+#                 new_ref_ranges.append(transform_pair)
+#                 shifts.append(shift)
 
-            new_split_pairs = [split_pair for split_pair in split_pairs if split_pair[0] <= split_pair[1]]
-            split_pairs += new_split_pairs
-    ref_ranges += split_pairs
-    split_pairs = []
+#             new_split_pairs = [split_pair for split_pair in new_split_pairs if split_pair[0] <= split_pair[1]]
+#             split_pairs += new_split_pairs
+#     ref_ranges += split_pairs
+#     split_pairs = []
 
-    for i in range(len(new_ref_ranges)):
-        new_range = new_ref_ranges[i]
-        shift = shifts[i]
-        ref_ranges += [[a + shift for a in new_range]]
+#     for i in range(len(new_ref_ranges)):
+#         new_range = new_ref_ranges[i]
+#         shift = shifts[i]
+#         ref_ranges += [[a + shift for a in new_range]]
 
-    handle_overlap(ref_ranges)
-    ref_ranges = [ref_range for ref_range in ref_ranges if len(ref_range) > 0]
+#     handle_overlap(ref_ranges)
+#     ref_ranges = [ref_range for ref_range in ref_ranges if len(ref_range) > 0]
 
-    counter += 1
-    print('Done section '+ str(counter) + ' out of ' + str(loop_length))
+#     counter += 1
+#     print('Done section '+ str(counter) + ' out of ' + str(loop_length))
 
-for a, b in ref_ranges:
-    if location is None:
-        location = a
-    elif location > a:
-        location = a
+# for a, b in ref_ranges:
+#     if location is None:
+#         location = a
+#     elif location > a:
+#         location = a
 
-print(location)
-        
+# print(location)
+
+current_ranges = []
+location_ranges = []
+
+for i, section in enumerate(maps):
+    for dest, source, length in section:
+        map_start = int(source)
+        map_end = int(source) + int(length) - 1
+        shift = int(dest) - int(source)
+        next_unsplit = []
+        print(sec_ref[i])
+
+        for seed_start, seed_end in seed_ranges:
+            print(seed_start, seed_end)
+            print(map_start, map_end)
+            if seed_start <= map_start <= seed_end:
+                split_start = map_start
+            elif map_start <= seed_start <= map_end:
+                split_start = seed_start
+            else:
+                next_unsplit += [(seed_start, seed_end)]
+                continue
+
+            if seed_start <= map_end <= seed_end:
+                split_end = map_end
+            elif map_start <= seed_end <= map_end:
+                split_end = seed_end
+            else:
+                next_unsplit += [(seed_start, seed_end)]
+                continue
+            
+            current_ranges += [(split_start + shift,  split_end + shift)]
+
+            if split_start > seed_start:
+                next_unsplit += [(seed_start, split_start - 1)]
+            if split_end < seed_end:
+                next_unsplit += [(split_end + 1, seed_end)]
+    print(current_ranges)
+
+print(location_ranges)
+
